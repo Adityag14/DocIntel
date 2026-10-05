@@ -1,20 +1,20 @@
 import os
 import sys
 
-# Ensure backend directory and root directory are in sys.path
-APP_DIR = os.path.dirname(os.path.abspath(__file__))
-BACKEND_DIR = os.path.dirname(APP_DIR)
-BASE_DIR = os.path.dirname(BACKEND_DIR)
+# Add project root and backend directory to python path
+ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
+BACKEND_DIR = os.path.join(ROOT_DIR, "backend")
 
+if ROOT_DIR not in sys.path:
+    sys.path.insert(0, ROOT_DIR)
 if BACKEND_DIR not in sys.path:
     sys.path.insert(0, BACKEND_DIR)
-if BASE_DIR not in sys.path:
-    sys.path.insert(0, BASE_DIR)
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
+
 from app.routers import documents, cases, chat
 
 app = FastAPI(
@@ -35,11 +35,11 @@ app.include_router(documents.router)
 app.include_router(cases.router)
 app.include_router(chat.router)
 
-FRONTEND_DIR = os.path.join(BASE_DIR, "frontend")
-UPLOADS_DIR = os.path.join(BASE_DIR, "uploads")
+FRONTEND_DIR = os.path.join(ROOT_DIR, "frontend")
+UPLOADS_DIR = os.path.join(ROOT_DIR, "uploads")
 os.makedirs(UPLOADS_DIR, exist_ok=True)
 
-# Serve the static files
+# Mount static file routes
 app.mount("/static", StaticFiles(directory=FRONTEND_DIR), name="static")
 app.mount("/uploads", StaticFiles(directory=UPLOADS_DIR), name="uploads")
 
@@ -49,4 +49,4 @@ async def serve_frontend():
 
 if __name__ == '__main__':
     import uvicorn
-    uvicorn.run("app.main:app", host='0.0.0.0', port=8000, reload=True)
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
