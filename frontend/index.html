@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enterprise DocIntel Workspace</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .custom-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-scroll::-webkit-scrollbar-track { background: #f1f5f9; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans min-h-screen flex flex-col">
+
+    <div class="flex flex-1 min-h-screen">
+        <!-- Sidebar Navigation -->
+        <aside class="w-64 bg-slate-900 text-slate-300 flex flex-col justify-between shrink-0 border-r border-slate-800">
+            <div>
+                <!-- Brand Header -->
+                <div class="px-6 py-5 border-b border-slate-800 flex items-center space-x-3">
+                    <div class="bg-indigo-600 p-2.5 rounded-xl text-white shadow-md">
+                        <i class="fa-solid fa-layer-group text-xl"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-base font-bold text-white tracking-tight leading-tight">DocIntel Pipeline</h1>
+                        <p class="text-[10px] text-slate-400">Autonomous VLM Engine</p>
+                    </div>
+                </div>
+
+                <!-- Navigation Tabs -->
+                <nav class="p-4 space-y-2">
+                    <button id="navTabDashboard" onclick="switchMainTab('dashboard')" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl font-semibold text-sm transition-all bg-indigo-600 text-white shadow-md">
+                        <i class="fa-solid fa-chart-pie text-lg"></i>
+                        <span>Dashboard & KPIs</span>
+                    </button>
+                    <button id="navTabExtraction" onclick="switchMainTab('extraction')" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl font-semibold text-sm transition-all text-slate-400 hover:text-white hover:bg-slate-800">
+                        <i class="fa-solid fa-file-invoice text-lg"></i>
+                        <span>Document Extraction</span>
+                    </button>
+                </nav>
+            </div>
+
+            <!-- Sidebar Status Footer -->
+            <div class="p-4 border-t border-slate-800">
+                <div class="bg-slate-800/80 p-3 rounded-xl border border-slate-700/60 flex items-center space-x-3">
+                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse shrink-0"></span>
+                    <div>
+                        <p class="text-xs font-semibold text-slate-200">Gemini LLM Agent</p>
+                        <p class="text-[10px] text-slate-400">Multimodal Inference</p>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Workspace View Container -->
+        <div class="flex-1 flex flex-col min-w-0 bg-slate-50">
+            
+            <!-- Top App Bar -->
+            <header class="bg-white border-b border-slate-200 px-8 py-4 flex justify-between items-center shadow-xs">
+                <div>
+                    <h2 id="pageTitleHeading" class="text-xl font-bold text-slate-900 tracking-tight">Executive Work & KPI Dashboard</h2>
+                    <p id="pageSubTitleHeading" class="text-xs text-slate-500">Real-time throughput metrics, document category breakdown, and processing statistics</p>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <button onclick="refreshDashboardData()" class="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 border border-slate-300 rounded-lg text-xs font-semibold text-slate-700 transition-colors flex items-center space-x-2">
+                        <i class="fa-solid fa-rotate-right"></i>
+                        <span>Refresh Stats</span>
+                    </button>
+                    <div class="flex items-center space-x-2 bg-slate-900 text-white px-3 py-1.5 rounded-full text-xs font-mono">
+                        <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                        <span>API Status: Online</span>
+                    </div>
+                </div>
+            </header>
+
+            <!-- TAB 1: DASHBOARD VIEW -->
+            <section id="viewDashboard" class="p-8 space-y-8 flex-1 overflow-y-auto custom-scroll">
+                
+                <!-- KPI Metrics Cards Grid -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div class="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-xs flex items-center justify-between">
+                        <div>
+                            <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Total Processed</p>
+                            <h3 id="kpiTotalDocs" class="text-3xl font-extrabold text-slate-900">0</h3>
+                            <p class="text-[11px] text-emerald-600 font-medium mt-1"><i class="fa-solid fa-arrow-trend-up mr-1"></i> Across all cases</p>
+                        </div>
+                        <div class="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-xl font-bold">
+                            <i class="fa-solid fa-folder-open"></i>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-xs flex items-center justify-between">
+                        <div>
+                            <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Verified & Approved</p>
+                            <h3 id="kpiVerifiedCount" class="text-3xl font-extrabold text-slate-900">0</h3>
+                            <p class="text-[11px] text-emerald-600 font-medium mt-1"><i class="fa-solid fa-circle-check mr-1"></i> Ready for injection</p>
+                        </div>
+                        <div class="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl font-bold">
+                            <i class="fa-solid fa-check-double"></i>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-xs flex items-center justify-between">
+                        <div>
+                            <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Extraction Accuracy</p>
+                            <h3 id="kpiAccuracy" class="text-3xl font-extrabold text-slate-900">98.8%</h3>
+                            <p class="text-[11px] text-indigo-600 font-medium mt-1"><i class="fa-solid fa-robot mr-1"></i> Gemini LLM VLM</p>
+                        </div>
+                        <div class="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-xl font-bold">
+                            <i class="fa-solid fa-bullseye"></i>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-xs flex items-center justify-between">
+                        <div>
+                            <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Avg Processing Speed</p>
+                            <h3 id="kpiAvgSpeed" class="text-3xl font-extrabold text-slate-900">1.1s</h3>
+                            <p class="text-[11px] text-slate-500 font-medium mt-1"><i class="fa-solid fa-bolt mr-1"></i> Per document</p>
+                        </div>
+                        <div class="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center text-xl font-bold">
+                            <i class="fa-solid fa-gauge-high"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Document Category Breakdown -->
+                <div class="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-xs">
+                    <div class="flex items-center justify-between mb-6">
+                        <div>
+                            <h3 class="text-base font-bold text-slate-900">Document Category Distribution</h3>
+                            <p class="text-xs text-slate-500">Autonomous classification metrics by document archetype</p>
+                        </div>
+                        <span class="px-3 py-1 bg-slate-100 rounded-full text-xs font-semibold text-slate-600">5 Categories Supported</span>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+                        <!-- Bank Statement -->
+                        <div class="p-4 rounded-xl border border-slate-200 bg-slate-50/60">
+                            <div class="flex items-center space-x-2 text-indigo-600 font-bold text-xs uppercase mb-2">
+                                <i class="fa-solid fa-building-columns"></i>
+                                <span>Bank Statement</span>
+                            </div>
+                            <h4 id="catCountBank" class="text-2xl font-bold text-slate-900">0</h4>
+                            <p class="text-[11px] text-slate-400 mt-1">Account & Balances</p>
+                        </div>
+
+                        <!-- Legal Agreement -->
+                        <div class="p-4 rounded-xl border border-slate-200 bg-slate-50/60">
+                            <div class="flex items-center space-x-2 text-purple-600 font-bold text-xs uppercase mb-2">
+                                <i class="fa-solid fa-file-contract"></i>
+                                <span>Legal Contract</span>
+                            </div>
+                            <h4 id="catCountLegal" class="text-2xl font-bold text-slate-900">0</h4>
+                            <p class="text-[11px] text-slate-400 mt-1">Terms & Parties</p>
+                        </div>
+
+                        <!-- Check -->
+                        <div class="p-4 rounded-xl border border-slate-200 bg-slate-50/60">
+                            <div class="flex items-center space-x-2 text-emerald-600 font-bold text-xs uppercase mb-2">
+                                <i class="fa-solid fa-money-check-dollar"></i>
+                                <span>Check / Pay</span>
+                            </div>
+                            <h4 id="catCountCheck" class="text-2xl font-bold text-slate-900">0</h4>
+                            <p class="text-[11px] text-slate-400 mt-1">Payee & Amounts</p>
+                        </div>
+
+                        <!-- Tax Return -->
+                        <div class="p-4 rounded-xl border border-slate-200 bg-slate-50/60">
+                            <div class="flex items-center space-x-2 text-rose-600 font-bold text-xs uppercase mb-2">
+                                <i class="fa-solid fa-file-invoice-dollar"></i>
+                                <span>Tax Return</span>
+                            </div>
+                            <h4 id="catCountTax" class="text-2xl font-bold text-slate-900">0</h4>
+                            <p class="text-[11px] text-slate-400 mt-1">AGI & Filings</p>
+                        </div>
+
+                        <!-- Invoice -->
+                        <div class="p-4 rounded-xl border border-slate-200 bg-slate-50/60">
+                            <div class="flex items-center space-x-2 text-amber-600 font-bold text-xs uppercase mb-2">
+                                <i class="fa-solid fa-receipt"></i>
+                                <span>Invoice / Bill</span>
+                            </div>
+                            <h4 id="catCountInvoice" class="text-2xl font-bold text-slate-900">0</h4>
+                            <p class="text-[11px] text-slate-400 mt-1">Vendor & Totals</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Processing Activity Table -->
+                <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+                    <div class="px-6 py-4 border-b border-slate-200 flex justify-between items-center bg-slate-50/80">
+                        <h3 class="text-sm font-bold text-slate-900 flex items-center">
+                            <i class="fa-solid fa-clock-rotate-left text-indigo-500 mr-2"></i> Recent Ingestion & Extraction Audit Log
+                        </h3>
+                        <button onclick="switchMainTab('extraction')" class="text-xs text-indigo-600 hover:text-indigo-800 font-semibold flex items-center space-x-1">
+                            <span>Open Ingestion Workspace</span>
+                            <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                        </button>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-slate-100/70 border-b border-slate-200 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                                    <th class="py-3 px-6">Doc ID</th>
+                                    <th class="py-3 px-6">Filename</th>
+                                    <th class="py-3 px-6">Category</th>
+                                    <th class="py-3 px-6">Case Tag</th>
+                                    <th class="py-3 px-6">Verification Status</th>
+                                    <th class="py-3 px-6 text-right">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="dashboardActivityTable" class="divide-y divide-slate-100 text-xs text-slate-700">
+                                <tr>
+                                    <td colspan="6" class="py-8 text-center text-slate-400 italic">No document extraction records available yet. Switch to the Document Extraction tab to ingest files.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </section>
+
+            <!-- TAB 2: DOCUMENT EXTRACTION WORKSPACE VIEW -->
+            <section id="viewExtraction" class="hidden p-6 max-w-[1600px] w-full mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6 flex-1 overflow-y-auto">
+                
+                <!-- Left Control Panel -->
+                <div class="lg:col-span-4 flex flex-col space-y-6">
+                    
+                    <!-- Case Context Tag -->
+                    <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
+                        <h2 class="text-sm font-semibold text-slate-900 uppercase tracking-wider mb-4 flex items-center">
+                            <i class="fa-solid fa-tags text-indigo-500 mr-2"></i> Case Context Identifier
+                        </h2>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-600 mb-1">UNIFIED CASE ID / TRANSACTION TAG</label>
+                                <input type="text" id="caseIdInput" value="CASE-RE-8842" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 font-mono font-bold text-slate-700">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-600 mb-1">CUSTOMER / ENTITY NAME</label>
+                                <input type="text" id="clientNameInput" value="Eleanor Vance" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Ingestion Drag & Drop -->
+                    <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
+                        <div class="flex justify-between items-center mb-4">
+                            <h2 class="text-sm font-semibold text-slate-900 uppercase tracking-wider flex items-center">
+                                <i class="fa-solid fa-cloud-arrow-up text-indigo-500 mr-2"></i> Document Ingestion
+                            </h2>
+                            <div class="flex items-center bg-slate-100 p-1 rounded-lg border border-slate-200">
+                                <button id="modeReviewBtn" onclick="setMode('review')" class="px-3 py-1 text-xs font-medium rounded-md bg-white text-indigo-600 shadow-xs transition-all">Review</button>
+                                <button id="modeAutoBtn" onclick="setMode('auto')" class="px-3 py-1 text-xs font-medium rounded-md text-slate-600 transition-all">Auto-Submit</button>
+                            </div>
+                        </div>
+                        
+                        <div id="dropZone" class="border-2 border-dashed border-slate-300 rounded-xl p-8 text-center bg-slate-50 hover:bg-slate-100/70 hover:border-indigo-400 transition-all cursor-pointer relative group">
+                            <input type="file" id="fileInput" class="hidden" accept="image/*,application/pdf">
+                            <div class="text-slate-400 group-hover:text-indigo-500 transition-colors mb-3">
+                                <i class="fa-solid fa-file-invoice text-4xl"></i>
+                            </div>
+                            <p class="text-sm font-medium text-slate-700">Drop financial/legal document here</p>
+                            <p class="text-xs text-slate-400 mt-1">Accepts Bank Statements, Contracts, Checks, Tax Returns, Invoices</p>
+                            <button type="button" class="mt-4 px-4 py-1.5 bg-white border border-slate-300 shadow-xs rounded-lg text-xs font-semibold hover:bg-slate-50">Browse Local File</button>
+                        </div>
+                        
+                        <div id="uploadStatus" class="mt-3 text-xs hidden"></div>
+                    </div>
+
+                    <!-- Linked Documents Docket -->
+                    <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5 flex-1 flex flex-col">
+                        <h2 class="text-sm font-semibold text-slate-900 uppercase tracking-wider mb-3 flex items-center justify-between">
+                            <span><i class="fa-solid fa-folder-tree text-indigo-500 mr-2"></i> Linked Documents Docket</span>
+                            <button onclick="refreshDocket()" class="text-xs text-indigo-600 hover:text-indigo-800 font-medium">Reload</button>
+                        </h2>
+                        <div id="docketContainer" class="space-y-2 flex-1 overflow-y-auto custom-scroll pr-1 text-xs text-slate-400 italic flex items-center justify-center border border-dashed border-slate-100 rounded-lg min-h-[150px]">
+                            No files parsed for this Transaction Tag yet.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Verification Workspace (Viewport & Dynamic Form) -->
+                <div class="lg:col-span-8 flex flex-col bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden min-h-[550px]">
+                    <div class="bg-slate-900 px-4 py-3 flex items-center justify-between text-white border-b border-slate-800">
+                        <div class="flex items-center space-x-2">
+                            <i class="fa-solid fa-wand-magic-sparkles text-indigo-400"></i>
+                            <span class="text-sm font-semibold tracking-wide">Interactive Verification Workspace</span>
+                        </div>
+                        <div id="activeDocBadge" class="hidden px-2.5 py-0.5 rounded-full font-mono text-xs font-bold bg-indigo-500 text-white">
+                            NO DOCKET ACTIVE
+                        </div>
+                    </div>
+                    
+                    <div class="flex-1 grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-slate-200 bg-slate-50/50">
+                        <!-- Digital Viewport -->
+                        <div class="p-6 flex flex-col items-center justify-center bg-slate-900/5 min-h-[250px]">
+                            <div id="visualPreviewPlaceholder" class="text-center p-6 border-2 border-dashed border-slate-200 rounded-xl bg-white max-w-xs shadow-xs">
+                                <i class="fa-solid fa-file-shield text-slate-300 text-5xl mb-3"></i>
+                                <h3 class="text-sm font-bold text-slate-700">Digital Asset Viewport</h3>
+                                <p class="text-xs text-slate-400 mt-1">Upload a real document file to populate visual parsing analytics.</p>
+                            </div>
+                            <div id="activeImageWrapper" class="hidden w-full h-full flex flex-col p-2 relative overflow-hidden bg-slate-100/50">
+                                <!-- Zoom Controls -->
+                                <div class="absolute top-4 right-4 z-10 flex space-x-1 bg-white p-1 rounded-lg border border-slate-200 shadow-sm">
+                                    <button onclick="zoomDoc(0.1)" class="w-8 h-8 flex items-center justify-center rounded hover:bg-slate-100 text-slate-600" title="Zoom In">
+                                        <i class="fa-solid fa-magnifying-glass-plus"></i>
+                                    </button>
+                                    <button onclick="zoomDoc(-0.1)" class="w-8 h-8 flex items-center justify-center rounded hover:bg-slate-100 text-slate-600" title="Zoom Out">
+                                        <i class="fa-solid fa-magnifying-glass-minus"></i>
+                                    </button>
+                                    <button onclick="resetZoom()" class="w-8 h-8 flex items-center justify-center rounded hover:bg-slate-100 text-slate-600" title="Reset Zoom">
+                                        <i class="fa-solid fa-expand"></i>
+                                    </button>
+                                </div>
+                                
+                                <div class="flex-1 overflow-auto custom-scroll flex items-center justify-center relative w-full h-full">
+                                    <div id="docViewerContainer" class="transition-transform duration-200 origin-center">
+                                        <!-- The document will be injected here -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Extracted Payload Form -->
+                        <div class="p-6 bg-white flex flex-col justify-between">
+                            <div>
+                                <div class="flex items-center justify-between mb-4 pb-2 border-b border-slate-100">
+                                    <h3 class="text-sm font-bold text-slate-900 flex items-center">
+                                        <i class="fa-solid fa-microchip text-slate-500 mr-2"></i> Extracted Module Payload
+                                    </h3>
+                                    <span id="moduleExtractionLabel" class="text-xs text-slate-400 italic">No system extraction loaded</span>
+                                </div>
+                                
+                                <div id="emptyFieldsPlaceholder" class="text-center py-20 text-slate-400 text-sm italic">
+                                    Select a record from the Docket Queue or drop a file to edit schema fields.
+                                </div>
+                                
+                                <form id="dynamicExtractionForm" class="space-y-4 hidden">
+                                </form>
+                            </div>
+
+                            <div id="formActionDock" class="mt-6 pt-4 border-t border-slate-100 hidden">
+                                <button type="button" id="submitFormBtn" onclick="commitVerifiedReview()" class="w-full bg-indigo-600 text-white py-2.5 rounded-lg text-sm font-semibold shadow-sm hover:bg-indigo-700 transition-colors flex items-center justify-center space-x-2">
+                                    <i class="fa-solid fa-circle-check"></i>
+                                    <span>Approve & Inject into Web Application</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </section>
+
+        </div>
+    </div>
+
+    <!-- Copilot AI Assistant Floating Window -->
+    <div id="chatAssistantWrapper" class="fixed bottom-6 right-6 z-50 flex flex-col items-end">
+        <div id="chatWindow" class="hidden w-[380px] h-[500px] bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col mb-4 transition-all duration-300">
+            <div class="bg-slate-900 text-white px-4 py-3.5 flex items-center justify-between border-b border-slate-800">
+                <div class="flex items-center space-x-2.5">
+                    <div class="w-2.5 h-2.5 bg-emerald-500 rounded-full"></div>
+                    <div>
+                        <h3 class="text-sm font-bold tracking-wide">Case Retrieval Copilot</h3>
+                        <p class="text-[10px] text-slate-400">Ask about records, bills, or specific cases</p>
+                    </div>
+                </div>
+                <button onclick="toggleChatWindow()" class="text-slate-400 hover:text-white transition-colors">
+                    <i class="fa-solid fa-chevron-down text-sm"></i>
+                </button>
+            </div>
+            
+            <div id="chatMessages" class="flex-1 p-4 overflow-y-auto space-y-3 custom-scroll bg-slate-50/60 text-xs text-slate-700">
+                <div class="flex items-start space-x-2">
+                    <div class="w-6 h-6 bg-slate-800 text-white rounded-full flex items-center justify-center text-[10px] font-bold shrink-0">AI</div>
+                    <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-xs max-w-[85%] leading-relaxed">
+                        Hello! I am your global asset retrieval assistant. You can prompt me to pull records across any customer or tag. 
+                        <br><br>
+                        Try asking: <br>
+                        <span class="text-indigo-600 font-mono font-bold block mt-1 cursor-pointer" onclick="setQuickQuery('legal')">"legal" (Search Agreements)</span>
+                        <span class="text-indigo-600 font-mono font-bold block mt-0.5 cursor-pointer" onclick="setQuickQuery('invoice')">"invoice" (Search Invoices)</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="p-3 border-t border-slate-200 bg-white flex items-center space-x-2">
+                <input type="text" id="chatInputField" placeholder="Query name, text payload, doc types..." class="flex-1 px-3 py-2 border border-slate-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500" onkeydown="if(event.key === 'Enter') dispatchChatMessage()">
+                <button onclick="dispatchChatMessage()" class="bg-slate-900 text-white w-8 h-8 rounded-lg flex items-center justify-center shadow-sm hover:bg-slate-800 transition-colors">
+                    <i class="fa-solid fa-paper-plane text-xs"></i>
+                </button>
+            </div>
+        </div>
+
+        <button onclick="toggleChatWindow()" class="bg-indigo-600 hover:bg-indigo-700 text-white w-14 h-14 rounded-full flex items-center justify-center shadow-xl transition-all">
+            <i id="chatIconTrigger" class="fa-solid fa-comment-dots text-xl"></i>
+        </button>
+    </div>
+
+    <!-- Document Details Pop-Up Modal -->
+    <div id="detailsModal" class="fixed inset-0 bg-slate-900/60 hidden items-center justify-center z-50 backdrop-blur-sm transition-all">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden transform transition-all border border-slate-100">
+            <div class="px-6 py-4 border-b border-slate-200 flex justify-between items-center bg-slate-50">
+                <h3 class="text-base font-bold text-slate-800 flex items-center"><i class="fa-solid fa-circle-info text-indigo-500 mr-2"></i> Document Details</h3>
+                <button onclick="closeDetailsModal()" class="text-slate-400 hover:text-rose-500 transition-colors"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            <div class="p-6">
+                <div id="modalDetailsContent" class="text-sm text-slate-700"></div>
+                <div class="mt-6 pt-4 border-t border-slate-200 flex justify-end space-x-3">
+                    <button onclick="closeDetailsModal()" class="px-4 py-2 border border-slate-300 text-slate-700 rounded-lg font-semibold text-xs hover:bg-slate-50">Close</button>
+                    <a id="modalDownloadBtn" href="#" download class="px-4 py-2 bg-indigo-600 text-white rounded-lg font-semibold text-xs hover:bg-indigo-700 inline-flex items-center shadow-sm">
+                        <i class="fa-solid fa-download mr-1.5"></i> Download File
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const BACKEND_URL = "http://localhost:8000";
+        let processingMode = "review";
+        let activeSelectedDoc = null;
+        let currentZoom = 1.0;
+
+        function switchMainTab(tab) {
+            const btnDash = document.getElementById("navTabDashboard");
+            const btnExt = document.getElementById("navTabExtraction");
+            const viewDash = document.getElementById("viewDashboard");
+            const viewExt = document.getElementById("viewExtraction");
+            
+            const titleHeading = document.getElementById("pageTitleHeading");
+            const subTitleHeading = document.getElementById("pageSubTitleHeading");
+
+            if (tab === "dashboard") {
+                btnDash.className = "w-full flex items-center space-x-3 px-4 py-3 rounded-xl font-semibold text-sm transition-all bg-indigo-600 text-white shadow-md";
+                btnExt.className = "w-full flex items-center space-x-3 px-4 py-3 rounded-xl font-semibold text-sm transition-all text-slate-400 hover:text-white hover:bg-slate-800";
+                viewDash.classList.remove("hidden");
+                viewExt.classList.add("hidden");
+                
+                titleHeading.innerText = "Executive Work & KPI Dashboard";
+                subTitleHeading.innerText = "Real-time throughput metrics, document category breakdown, and processing statistics";
+                refreshDashboardData();
+            } else {
+                btnExt.className = "w-full flex items-center space-x-3 px-4 py-3 rounded-xl font-semibold text-sm transition-all bg-indigo-600 text-white shadow-md";
+                btnDash.className = "w-full flex items-center space-x-3 px-4 py-3 rounded-xl font-semibold text-sm transition-all text-slate-400 hover:text-white hover:bg-slate-800";
+                viewExt.classList.remove("hidden");
+                viewDash.classList.add("hidden");
+                
+                titleHeading.innerText = "Interactive Document AI Extraction Workspace";
+                subTitleHeading.innerText = "Upload, classify, verify, and approve extracted document schemas";
+            }
+        }
+
+        async function refreshDashboardData() {
+            try {
+                const res = await fetch(`${BACKEND_URL}/api/cases/dashboard/stats`);
+                const data = await res.json();
+                
+                document.getElementById("kpiTotalDocs").innerText = data.total_documents;
+                document.getElementById("kpiVerifiedCount").innerText = data.verified_count;
+                document.getElementById("kpiAccuracy").innerText = data.accuracy_rate;
+                document.getElementById("kpiAvgSpeed").innerText = data.avg_processing_time;
+
+                const cats = data.category_breakdown || {};
+                document.getElementById("catCountBank").innerText = cats["bank_statement"] || 0;
+                document.getElementById("catCountLegal").innerText = cats["legal_agreement"] || 0;
+                document.getElementById("catCountCheck").innerText = cats["check"] || 0;
+                document.getElementById("catCountTax").innerText = cats["tax_return"] || 0;
+                document.getElementById("catCountInvoice").innerText = cats["invoice"] || 0;
+
+                const tbody = document.getElementById("dashboardActivityTable");
+                if (data.recent_activity && data.recent_activity.length > 0) {
+                    tbody.innerHTML = "";
+                    data.recent_activity.forEach(doc => {
+                        const tr = document.createElement("tr");
+                        tr.className = "hover:bg-slate-50/80 transition-colors";
+                        tr.innerHTML = `
+                            <td class="py-3 px-6 font-mono font-bold text-indigo-600">${doc.doc_id}</td>
+                            <td class="py-3 px-6 font-medium">${doc.filename}</td>
+                            <td class="py-3 px-6 uppercase font-extrabold text-[10px] text-slate-600">
+                                <span class="px-2 py-0.5 rounded bg-slate-100 border border-slate-200">${doc.doc_type}</span>
+                            </td>
+                            <td class="py-3 px-6 font-mono">${doc.case_id}</td>
+                            <td class="py-3 px-6">
+                                <span class="px-2 py-0.5 rounded text-[10px] font-semibold ${doc.status.includes('Verified') || doc.status.includes('Auto') ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}">
+                                    ${doc.status}
+                                </span>
+                            </td>
+                            <td class="py-3 px-6 text-right">
+                                <button onclick="openDocFromDashboard('${doc.case_id}', '${doc.doc_id}')" class="text-xs text-indigo-600 hover:text-indigo-800 font-bold">
+                                    View Workspace
+                                </button>
+                            </td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
+                } else {
+                    tbody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-slate-400 italic">No document extraction records available yet. Switch to Document Extraction tab to upload files.</td></tr>`;
+                }
+            } catch (err) {
+                console.error("Dashboard refresh error:", err);
+            }
+        }
+
+        async function openDocFromDashboard(caseId, docId) {
+            document.getElementById("caseIdInput").value = caseId;
+            switchMainTab('extraction');
+            await refreshDocket();
+            try {
+                const res = await fetch(`${BACKEND_URL}/api/cases/${caseId}`);
+                const data = await res.json();
+                const targetDoc = data.documents.find(d => d.doc_id === docId);
+                if (targetDoc) loadDocumentToWorkspace(targetDoc);
+            } catch(e) {}
+        }
+
+        function zoomDoc(step) {
+            currentZoom += step;
+            if(currentZoom < 0.2) currentZoom = 0.2;
+            if(currentZoom > 5.0) currentZoom = 5.0;
+            const container = document.getElementById("docViewerContainer");
+            if(container) container.style.transform = `scale(${currentZoom})`;
+        }
+
+        function resetZoom() {
+            currentZoom = 1.0;
+            const container = document.getElementById("docViewerContainer");
+            if(container) container.style.transform = `scale(1)`;
+        }
+
+        function setMode(mode) {
+            processingMode = mode;
+            const reviewBtn = document.getElementById("modeReviewBtn");
+            const autoBtn = document.getElementById("modeAutoBtn");
+            if (mode === 'auto') {
+                autoBtn.className = "px-3 py-1 text-xs font-medium rounded-md bg-white text-indigo-600 shadow-xs transition-all";
+                reviewBtn.className = "px-3 py-1 text-xs font-medium rounded-md text-slate-600 transition-all";
+            } else {
+                reviewBtn.className = "px-3 py-1 text-xs font-medium rounded-md bg-white text-indigo-600 shadow-xs transition-all";
+                autoBtn.className = "px-3 py-1 text-xs font-medium rounded-md text-slate-600 transition-all";
+            }
+        }
+
+        const dropZone = document.getElementById("dropZone");
+        const fileInput = document.getElementById("fileInput");
+        dropZone.addEventListener("click", () => fileInput.click());
+        dropZone.addEventListener("dragover", (e) => { e.preventDefault(); dropZone.classList.add("border-indigo-500", "bg-indigo-50/50"); });
+        dropZone.addEventListener("dragleave", () => { dropZone.classList.remove("border-indigo-500", "bg-indigo-50/50"); });
+        dropZone.addEventListener("drop", (e) => {
+            e.preventDefault();
+            dropZone.classList.remove("border-indigo-500", "bg-indigo-50/50");
+            if(e.dataTransfer.files.length) handleDocumentPipelineUpload(e.dataTransfer.files[0]);
+        });
+        fileInput.addEventListener("change", (e) => {
+            if(e.target.files.length) handleDocumentPipelineUpload(e.target.files[0]);
+        });
+
+        async function handleDocumentPipelineUpload(file) {
+            const caseId = document.getElementById("caseIdInput").value.trim();
+            const clientName = document.getElementById("clientNameInput").value.trim();
+            const statusBox = document.getElementById("uploadStatus");
+            if(!caseId || !clientName) {
+                alert("Please declare a Case ID Tag and Customer Context Name.");
+                return;
+            }
+            statusBox.className = "mt-3 text-xs text-indigo-600 font-medium block animate-pulse";
+            statusBox.innerText = `🔄 Processing ${file.name}...`;
+
+            const formData = new FormData();
+            formData.append("file", file);
+            formData.append("case_id", caseId);
+            formData.append("client_name", clientName);
+            formData.append("mode", processingMode);
+
+            try {
+                const response = await fetch(`${BACKEND_URL}/api/upload`, { method: "POST", body: formData });
+                const data = await response.json();
+                statusBox.className = "mt-3 text-xs text-emerald-600 font-medium block";
+                statusBox.innerText = `✅ Extracted as ${data.doc_type.toUpperCase()}`;
+                
+                data.file_url = URL.createObjectURL(file);
+                
+                refreshDocket();
+                loadDocumentToWorkspace(data);
+            } catch(e) {
+                statusBox.className = "mt-3 text-xs text-rose-600 font-medium block";
+                statusBox.innerText = "❌ Processing failure.";
+            }
+        }
+
+        async function refreshDocket() {
+            const caseId = document.getElementById("caseIdInput").value.trim();
+            const container = document.getElementById("docketContainer");
+            try {
+                const res = await fetch(`${BACKEND_URL}/api/cases/${caseId}`);
+                const data = await res.json();
+                if(!data.documents || data.documents.length === 0) {
+                    container.className = "space-y-2 flex-1 overflow-y-auto text-xs text-slate-400 italic flex items-center justify-center border border-dashed border-slate-100 rounded-lg min-h-[150px]";
+                    container.innerText = "No files parsed for this Transaction Tag yet.";
+                    return;
+                }
+                container.className = "space-y-2 flex-1 overflow-y-auto custom-scroll pr-1";
+                container.innerHTML = "";
+                data.documents.forEach(doc => {
+                    const el = document.createElement("div");
+                    const isSelected = activeSelectedDoc && activeSelectedDoc.doc_id === doc.doc_id;
+                    const borderStyle = isSelected ? "border-indigo-500 bg-indigo-50/40" : "border-slate-200 bg-white hover:border-slate-300";
+                    const badgeColor = doc.status.includes("Verified") ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700";
+
+                    el.className = `p-3 rounded-lg border ${borderStyle} cursor-pointer transition-all`;
+                    el.onclick = () => showDocModal(doc);
+                    el.innerHTML = `
+                        <div class="flex items-center justify-between font-mono text-[11px] mb-1">
+                            <span class="font-bold text-slate-800">${doc.doc_id}</span>
+                            <span class="px-2 py-0.5 rounded text-[10px] font-extrabold uppercase bg-slate-100 text-slate-700">${doc.doc_type}</span>
+                        </div>
+                        <div class="text-[11px] text-slate-500 truncate max-w-[200px] mb-2">${doc.filename}</div>
+                        <div class="flex items-center justify-between text-[10px]">
+                            <span class="px-1.5 py-0.5 rounded font-medium ${badgeColor}">${doc.status}</span>
+                        </div>
+                    `;
+                    container.appendChild(el);
+                });
+            } catch(err) {
+                console.error(err);
+            }
+        }
+
+        function showDocModal(doc) {
+            loadDocumentToWorkspace(doc);
+            
+            const modal = document.getElementById("detailsModal");
+            modal.classList.remove("hidden");
+            modal.classList.add("flex");
+            
+            const content = document.getElementById("modalDetailsContent");
+            let payloadHtml = '<div class="space-y-2 mt-4 bg-slate-50 p-4 rounded-xl border border-slate-200"><h4 class="font-bold text-xs uppercase text-slate-500">Extracted Payload Fields:</h4>';
+            if (doc.extracted_payload) {
+                Object.entries(doc.extracted_payload).forEach(([k, v]) => {
+                    payloadHtml += `<div class="flex justify-between text-xs py-1 border-b border-slate-200/60"><span class="font-semibold text-slate-600">${k.replace(/_/g, ' ').toUpperCase()}:</span><span class="font-mono text-slate-900 font-bold">${v}</span></div>`;
+                });
+            }
+            payloadHtml += '</div>';
+
+            content.innerHTML = `
+                <div class="space-y-2">
+                    <div class="flex justify-between items-center text-xs"><span class="text-slate-500">Document ID:</span> <span class="font-mono font-bold text-indigo-600">${doc.doc_id}</span></div>
+                    <div class="flex justify-between items-center text-xs"><span class="text-slate-500">Filename:</span> <span class="font-medium">${doc.filename}</span></div>
+                    <div class="flex justify-between items-center text-xs"><span class="text-slate-500">Category / Type:</span> <span class="font-bold uppercase text-slate-700">${doc.doc_type}</span></div>
+                    <div class="flex justify-between items-center text-xs"><span class="text-slate-500">Status:</span> <span class="px-2 py-0.5 rounded bg-indigo-100 text-indigo-700 text-[10px] font-bold">${doc.status}</span></div>
+                </div>
+                ${payloadHtml}
+            `;
+
+            const downloadBtn = document.getElementById("modalDownloadBtn");
+            if(doc.file_url) {
+                downloadBtn.href = doc.file_url;
+                downloadBtn.style.display = "inline-flex";
+            } else {
+                downloadBtn.style.display = "none";
+            }
+        }
+
+        function closeDetailsModal() {
+            const modal = document.getElementById("detailsModal");
+            modal.classList.add("hidden");
+            modal.classList.remove("flex");
+        }
+
+        function loadDocumentToWorkspace(doc) {
+            activeSelectedDoc = doc;
+            document.getElementById("visualPreviewPlaceholder").classList.add("hidden");
+            document.getElementById("activeImageWrapper").classList.remove("hidden");
+            document.getElementById("emptyFieldsPlaceholder").classList.add("hidden");
+            document.getElementById("dynamicExtractionForm").classList.remove("hidden");
+            document.getElementById("formActionDock").classList.remove("hidden");
+            document.getElementById("activeDocBadge").classList.remove("hidden");
+            document.getElementById("activeDocBadge").innerText = doc.doc_id;
+            document.getElementById("moduleExtractionLabel").innerText = `${doc.doc_type.toUpperCase()} Module Form`;
+            
+            const viewer = document.getElementById("docViewerContainer");
+            if (doc.file_url) {
+                const ext = doc.filename.split('.').pop().toLowerCase();
+                const imageTypes = ['png', 'jpg', 'jpeg', 'gif', 'svg', 'webp', 'bmp'];
+                
+                if (ext === 'pdf') {
+                    viewer.innerHTML = `<embed src="${doc.file_url}" type="application/pdf" width="100%" height="800px" class="border border-slate-300 shadow-sm bg-white" />`;
+                } else if (imageTypes.includes(ext)) {
+                    viewer.innerHTML = `<img src="${doc.file_url}" class="max-w-full h-auto object-contain border border-slate-300 shadow-sm bg-white" />`;
+                } else if (['txt', 'csv', 'json', 'md', 'html', 'xml'].includes(ext)) {
+                    viewer.innerHTML = `<iframe src="${doc.file_url}" class="w-full h-[600px] border border-slate-300 shadow-sm bg-white"></iframe>`;
+                } else {
+                    viewer.innerHTML = `
+                        <div class="p-10 text-center bg-white border border-slate-300 rounded shadow-sm w-full max-w-md mx-auto mt-10">
+                            <i class="fa-solid fa-file-circle-question text-6xl text-slate-300 mb-4"></i>
+                            <h3 class="text-slate-700 font-bold mb-1">Preview not available</h3>
+                            <p class="text-slate-500 text-xs mb-4">Browsers cannot natively preview .${ext} files.</p>
+                            <a href="${doc.file_url}" download class="inline-flex items-center space-x-2 px-4 py-2 bg-indigo-600 text-white rounded-lg shadow-sm hover:bg-indigo-700 text-xs font-semibold transition-colors">
+                                <i class="fa-solid fa-download"></i>
+                                <span>Download File</span>
+                            </a>
+                        </div>`;
+                }
+            } else {
+                viewer.innerHTML = `<div class="p-10 text-slate-400 italic">No document file available.</div>`;
+            }
+            if(typeof resetZoom === 'function') resetZoom();
+
+            const form = document.getElementById("dynamicExtractionForm");
+            form.innerHTML = "";
+            Object.entries(doc.extracted_payload).forEach(([key, val]) => {
+                const div = document.createElement("div");
+                div.innerHTML = `
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">${key.replace(/_/g, " ").toUpperCase()}</label>
+                    <input type="text" name="${key}" value="${val}" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-800">
+                `;
+                form.appendChild(div);
+            });
+            
+            const submitBtn = document.getElementById("submitFormBtn");
+            if (doc.status.includes("Submitted")) {
+                submitBtn.className = "w-full bg-emerald-600 text-white py-2.5 rounded-lg text-sm font-semibold shadow-sm cursor-not-allowed flex items-center justify-center space-x-2";
+                submitBtn.innerHTML = `<span>Form Injected & Finalized</span>`;
+                submitBtn.disabled = true;
+            } else {
+                submitBtn.className = "w-full bg-indigo-600 text-white py-2.5 rounded-lg text-sm font-semibold shadow-sm hover:bg-indigo-700 flex items-center justify-center space-x-2";
+                submitBtn.innerHTML = `<span>Approve & Inject into Web Application</span>`;
+                submitBtn.disabled = false;
+            }
+        }
+
+        async function commitVerifiedReview() {
+            if(!activeSelectedDoc) return;
+            const form = document.getElementById("dynamicExtractionForm");
+            const formData = new FormData(form);
+            const updatedFields = {};
+            formData.forEach((val, key) => {
+                updatedFields[key] = isNaN(val) || val.trim()==='' ? val : parseFloat(val);
+            });
+            try {
+                const res = await fetch(`${BACKEND_URL}/api/submit-review`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ doc_id: activeSelectedDoc.doc_id, fields: updatedFields })
+                });
+                const data = await res.json();
+                if(data.status === "success") {
+                    alert("Document injected successfully.");
+                    refreshDocket();
+                    loadDocumentToWorkspace(data.document);
+                }
+            } catch(e) {
+                alert("Error submitting form.");
+            }
+        }
+
+        function toggleChatWindow() {
+            const win = document.getElementById("chatWindow");
+            const icon = document.getElementById("chatIconTrigger");
+            if(win.classList.contains("hidden")) {
+                win.classList.remove("hidden");
+                icon.className = "fa-solid fa-xmark text-xl";
+            } else {
+                win.classList.add("hidden");
+                icon.className = "fa-solid fa-comment-dots text-xl";
+            }
+        }
+
+        function setQuickQuery(txt) {
+            document.getElementById("chatInputField").value = txt;
+            dispatchChatMessage();
+        }
+
+        async function dispatchChatMessage() {
+            const input = document.getElementById("chatInputField");
+            const query = input.value.trim();
+            if(!query) return;
+            const chatMessages = document.getElementById("chatMessages");
+            const userBubble = document.createElement("div");
+            userBubble.className = "flex items-start space-x-2 justify-end";
+            userBubble.innerHTML = `<div class="bg-indigo-600 text-white p-3 rounded-xl max-w-[85%]">${query}</div>`;
+            chatMessages.appendChild(userBubble);
+            input.value = "";
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+
+            try {
+                const res = await fetch(`${BACKEND_URL}/api/chat?query=${encodeURIComponent(query)}`);
+                const data = await res.json();
+                const aiBubble = document.createElement("div");
+                aiBubble.className = "flex items-start space-x-2 mt-2";
+                aiBubble.innerHTML = `
+                    <div class="w-6 h-6 bg-slate-800 text-white rounded-full flex items-center justify-center text-[10px] font-bold shrink-0">AI</div>
+                    <div class="bg-white p-3 rounded-xl border border-slate-200 max-w-[85%] whitespace-pre-wrap">${data.reply}</div>
+                `;
+                chatMessages.appendChild(aiBubble);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            } catch(e) {
+                console.error(e);
+            }
+        }
+
+        // Initialize dashboard stats on page load
+        document.addEventListener("DOMContentLoaded", () => {
+            refreshDashboardData();
+        });
+    </script>
+</body>
+</html>
